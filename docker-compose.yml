@@ -1,0 +1,97 @@
+# docker-compose.yml
+# NOTE: 'version' key is deprecated in Compose v2 — omit it entirely.
+
+networks:
+  # Isolated internal network — containers only reachable by name within this network
+  app_net:
+    driver: bridge
+
+services:
+  mongo:
+    image: mongo:7.0
+    container_name: collab_mongo
+    restart: unless-stopped
+    networks:
+      - app_net
+    # Only expose to host if you need direct DB access during dev.
+    # Remove this in production — the app reaches mongo via app_net.
+    ports:
+      - '127.0.0.1:27017:27017'   # bind to loopback only, not 0.0.0.0
+    volumes:
+      - mongo_data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: collab_engine
+      # Add root credentials for production:
+      # MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER}
+      # MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASS}
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+
+  redis:
+    image: redis:7.2-alpine
+    container_name: collab_redis
+    restart: unless-stopped
+    networks:
+      - app_net
+    # Same — loopback-only for dev; remove entirely in production.
+    ports:
+      - '127.0.0.1:6379:6379'
+    volumes:
+      - redis_data:/data
+    command: >
+      redis-server
+      --appendonly yes
+      --requirepass ${REDIS_PASSWORD}
+      --bind 0.0.0.0
+      --protected-mode no
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          memory: 256m
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: collab_app
+    restart: unless-stopped
+    networks:
+      - app_net
+    ports:
+      - '4000:4000'
+    env_file:
+      - .env
+    environment:
+      # These override .env so service names resolve correctly inside Docker
+      NODE_ENV: production
+      MONGO_URI: mongodb://mongo:27017/collab_engine
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      # REDIS_PASSWORD is read from .env via env_file above
+    depends_on:
+      mongo:
+        condition: service_healthy   # wait for mongo to pass healthcheck
+      redis:
+        condition: service_healthy   # wait for redis to pass healthcheck
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+
+volumes:
+  mongo_data:
+  redis_data:
