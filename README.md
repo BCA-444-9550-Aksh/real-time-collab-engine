@@ -479,7 +479,7 @@ type Operation = {
 
 ## Available Scripts
 
-### Backend (root)
+### Backend (/backend)
 
 | Command | Description |
 |---|---|
