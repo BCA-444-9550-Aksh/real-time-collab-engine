@@ -46,7 +46,7 @@ export function registerChatHandlers(io: Server, socket: Socket): void {
         });
 
         const broadcast = {
-          id: message.id,
+          _id: message.id,
           docId,
           userId: user.id,
           userName: user.name,

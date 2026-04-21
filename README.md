@@ -126,6 +126,15 @@ User types keystroke
               → Each client's TipTap applies the remote op
 ```
 
+### CRDT Architecture
+
+The collaborative editing engine relies on a custom **Conflict-Free Replicated Data Type (CRDT)** architecture to handle concurrent edits natively. This guarantees robust, eventual consistency without relying on document locking:
+
+- **Immutable Operation Log:** The ultimate source of truth is an append-only log of discrete operations (`insert`, `delete`, `replace`). The entire document state is reconstructed by applying these operations sequentially over periodic static snapshots.
+- **Tombstone Approach:** Deletions and replacements function via positional tombstones. When concurrent modifications happen locally, they are pushed and deterministically merged ensuring no unintended content duplication or lost keystrokes.
+- **Optimistic UI:** When a user types, the UI immediately updates locally within the TipTap editor instance, maintaining a highly responsive typing experience, whilst asynchronously syncing operations via WebSockets to the Node.js backend.
+- **Deterministic Resolution & Sync:** Each submitted change carries a `version` vector clock. The server queues concurrent events across a dedicated document Redis Stream, processes them strictly sequentially via `crdt.service.ts`, and uniformly broadcasts the final consolidated `edit:applied` event to all room members.
+
 ---
 
 ## Tech Stack
@@ -504,4 +513,4 @@ Please keep PRs focused — one feature or fix per PR makes reviews faster.
 
 ## License
 
-[MIT](LICENSE) © 2024 Gamerking177
+[MIT](LICENSE) © 2026 Aksh Raj

@@ -56,6 +56,15 @@ export const getMessages = asyncHandler(async (req: Request, res: Response) => {
     .limit(limit)
     .lean();
 
+  const formattedMessages = messages.map(msg => ({
+    _id: msg._id,
+    docId: msg.docId,
+    userId: (msg.userId as any)._id,
+    userName: (msg.userId as any).name,
+    text: msg.text,
+    createdAt: msg.createdAt,
+  }));
+
   // Send the oldest message's timestamp as next cursor
   const nextCursor =
     messages.length === limit
@@ -63,7 +72,7 @@ export const getMessages = asyncHandler(async (req: Request, res: Response) => {
       : null;
 
   res.json(
-    success(messages, undefined, {
+    success(formattedMessages, undefined, {
       limit,
       nextCursor,
       hasMore: nextCursor !== null,

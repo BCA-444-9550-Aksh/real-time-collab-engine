@@ -35,15 +35,16 @@ export const useChatStore = create<ChatState>((set, get) => ({
     set({ isLoading: true });
     try {
       const params: Record<string, string> = { limit: '30' };
-      if (!reset && get().cursor) params.before = get().cursor!;
+      if (!reset && get().cursor) params.cursor = get().cursor!;
 
       const { data } = await api.get(`/docs/${docId}/messages`, { params });
       const msgs: ChatMessage[] = data.data ?? [];
+      const reversedMsgs = msgs.reverse(); // Convert from newest-first to chronological
 
       set((s) => ({
-        messages: reset ? msgs : [...msgs, ...s.messages],
-        hasMore: msgs.length === 30,
-        cursor: msgs[0]?.createdAt ?? s.cursor,
+        messages: reset ? reversedMsgs : [...reversedMsgs, ...s.messages],
+        hasMore: data.pagination? data.pagination.hasMore : msgs.length === 30,
+        cursor: reversedMsgs[0]?.createdAt ?? s.cursor,
         isLoading: false,
       }));
     } catch {

@@ -52,7 +52,7 @@ export function useSocketRoom(docId: string) {
     });
 
     // ─── Chat ─────────────────────────────────────────────────
-    socket.on('chat_message', (msg: any) => {
+    socket.on('new_message', (msg: any) => {
       addMessage(msg);
     });
 
@@ -65,7 +65,7 @@ export function useSocketRoom(docId: string) {
       socket.off('doc_state');
       socket.off('cursor_update');
       socket.off('op_applied');
-      socket.off('chat_message');
+      socket.off('new_message');
       joinedRef.current = false;
       reset();
     };

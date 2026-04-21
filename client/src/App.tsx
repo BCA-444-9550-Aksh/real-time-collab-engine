@@ -4,6 +4,7 @@ import AuthPage from './pages/AuthPage';
 import EditorPage from './pages/EditorPage';
 import DashboardPage from './pages/DashboardPage';
 import NotFoundPage from './pages/NotFoundPage';
+import LandingPage from './pages/LandingPage';
 
 function ProtectedRoute({ children }: { children: React.ReactElement }) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
@@ -13,9 +14,13 @@ function ProtectedRoute({ children }: { children: React.ReactElement }) {
 export default function App() {
   return (
     <Routes>
+      {/* Public landing page */}
+      <Route path="/" element={<LandingPage />} />
       <Route path="/auth" element={<AuthPage />} />
+
+      {/* Protected app routes */}
       <Route
-        path="/"
+        path="/dashboard"
         element={
           <ProtectedRoute>
             <DashboardPage />
@@ -34,3 +39,4 @@ export default function App() {
     </Routes>
   );
 }
+
