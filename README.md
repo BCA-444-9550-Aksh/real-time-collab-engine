@@ -281,7 +281,7 @@ Run MongoDB and Redis in Docker, then start each package in watch mode:
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/Gamerking177/real-time-collab-eng.git
+git clone https://github.com/BCA-444-9550-Aksh/real-time-collab-eng.git
 cd real-time-collab-eng
 
 # 2. Install backend dependencies
